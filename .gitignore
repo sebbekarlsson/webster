@@ -1,0 +1,11 @@
+*.swp
+*.swl
+*.swa
+*.swn
+*.swl
+*.swo
+*.pyc
+*cache*
+*egg*
+build
+dist
