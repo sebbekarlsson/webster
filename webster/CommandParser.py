@@ -60,8 +60,9 @@ class CommandParser(object):
                                 table_data.append(entry)
 
                         table = AsciiTable(table_data)
+                        output = table.table + "\n" + "Rows: {}".format(len(table_data)-1)
 
-                return conn.send(table.table.encode('utf-8').strip())
+                return conn.send(output.encode('utf-8').strip())
 
         if command == 'urlfind':
             if len(args) > 0:
@@ -92,9 +93,11 @@ class CommandParser(object):
                                 
                             entry = [url['url'], url['last_scraped']]
                             table_data.append(entry)
-                        table = AsciiTable(table_data)
 
-                return conn.send(table.table.encode('utf-8').strip())
+                        table = AsciiTable(table_data)
+                        output = table.table + "\n" + "Rows: {}".format(len(table_data)-1)
+
+                return conn.send(output.encode('utf-8').strip())
 
         if command == 'spider':
             if len(args) > 0:
