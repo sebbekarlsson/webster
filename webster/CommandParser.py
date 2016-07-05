@@ -12,15 +12,18 @@ def deploy_spider(spider):
 
 class CommandParser(object):
     def parse(self, data, conn):
+        if data is None or data == '':
+            return conn.send(u'...')
+
         try:
             args = data.split(' ')
             command = args[0]
             args.pop(0)
         except Exception as e:
-            conn.send(str(e))
+            return conn.send(str(e))
 
         if command == 'SERVER->QUIT':
-            return conn.send('TERMINATING')
+            return conn.send(u'TERMINATING')
             conn.close()
             quit()
 
@@ -52,7 +55,9 @@ class CommandParser(object):
                                 url['domain'] = url['domain'][0:120]
                                 
                             entry = [url['domain'], url['last_scraped']]
-                            table_data.append(entry)
+
+                            if entry[0] not in [e[0] for e in table_data]:
+                                table_data.append(entry)
 
                         table = AsciiTable(table_data)
 

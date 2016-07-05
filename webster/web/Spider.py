@@ -5,9 +5,10 @@ from  more_itertools import unique_everseen
 from webster.mongo import db
 from webster.models import URLEntry
 import time
-from requests.exceptions import InvalidSchema, ConnectionError, Timeout
+from requests.exceptions import InvalidSchema, ConnectionError, Timeout, TooManyRedirects
 import threading
 import tldextract
+from webster.web.extra import url_file, file_extensions
 
 
 class Spider(object):
@@ -45,9 +46,18 @@ class Spider(object):
 
 
     def start(self):
+        for ext in file_extensions:
+            if ext in url_file(self.url):
+                db.collections.update_one({
+                    'structure': '#URLEntry',
+                    'url': self.url
+                    }, {'$set': { 'last_scraped': time.strftime("%Y-%m-%d %H:%M:%S")}})
+                print('Skipping: {}'.format(self.url))
+                return None
+
         try:
             html_doc = self.sess.get(self.url, timeout=3).text
-        except (InvalidSchema, ConnectionError, Timeout):
+        except (InvalidSchema, ConnectionError, Timeout, TooManyRedirects):
             db.collections.remove(
                         {
                             'structure': '#URLEntry',
@@ -62,7 +72,7 @@ class Spider(object):
         for url in urls:
             existing = db.collections.find_one({
                 'structure': '#URLEntry',
-                'domain': self.get_domain(url)
+                'url': url
                 })
 
             if existing is None:
@@ -86,3 +96,11 @@ class Spider(object):
                     'domain': self.get_domain(self.url),
                     'url': self.url
                     }, {'$set': { 'last_scraped': time.strftime("%Y-%m-%d %H:%M:%S")}})
+        else:
+            try:
+                tld = tldextract.extract(self.url).suffix
+            except:
+                tld = '*'
+
+            entry = URLEntry(domain=self.get_domain(self.url), url=self.url, tld=tld)
+            db.collections.insert_one(entry.export())
