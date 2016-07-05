@@ -3,20 +3,23 @@ from webster.web.extra import fetch_url
 import threading
 
 
-class SpiderNet(object):
+class SpiderNet(threading.Thread):
     spiders = []
+    urls = []
 
-    def __init__(self):
-        pass
+    def __init__(self, urls):
+        threading.Thread.__init__(self)
+        self.urls = urls
+        self.running = True
+        self.daemon = True
 
-    def start(self, urls):
-        for url in urls:
+    def run(self):
+        for url in self.urls:
             spider = Spider(url)
             spider.start()
 
-        try:
-            while True:
-                spider = Spider(fetch_url()['url'])
-                spider.start()
-        except KeyboardInterrupt:
-            quit()
+        while self.running:
+            spider = Spider(fetch_url()['url'])
+            spider.start()
+            
+        #quit()

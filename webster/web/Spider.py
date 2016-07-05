@@ -5,16 +5,17 @@ from  more_itertools import unique_everseen
 from webster.mongo import db
 from webster.models import URLEntry
 import time
-from requests.exceptions import InvalidSchema, ConnectionError
+from requests.exceptions import InvalidSchema, ConnectionError, Timeout
 import threading
+import tldextract
 
 
-class Spider(threading.Thread):
+class Spider(object):
     url = None
     sess = None
 
     def __init__(self, url):
-        print('{} : {}'.format(url, self.get_domain(url)))
+        print(url)
         self.url = url
         self.sess = Session()
 
@@ -45,8 +46,8 @@ class Spider(threading.Thread):
 
     def start(self):
         try:
-            html_doc = self.sess.get(self.url).text
-        except (InvalidSchema, ConnectionError):
+            html_doc = self.sess.get(self.url, timeout=3).text
+        except (InvalidSchema, ConnectionError, Timeout):
             db.collections.remove(
                         {
                             'structure': '#URLEntry',
@@ -57,6 +58,22 @@ class Spider(threading.Thread):
 
         soup = BeautifulSoup(html_doc, 'html.parser')
         urls = self.get_urls(soup)
+
+        for url in urls:
+            existing = db.collections.find_one({
+                'structure': '#URLEntry',
+                'domain': self.get_domain(url)
+                })
+
+            if existing is None:
+
+                try:
+                    tld = tldextract.extract(url).suffix
+                except:
+                    tld = '*'
+
+                entry = URLEntry(domain=self.get_domain(url), url=url, tld=tld)
+                db.collections.insert_one(entry.export())
 
         this_existing = db.collections.find_one({
                 'structure': '#URLEntry',
@@ -69,13 +86,3 @@ class Spider(threading.Thread):
                     'domain': self.get_domain(self.url),
                     'url': self.url
                     }, {'$set': { 'last_scraped': time.strftime("%Y-%m-%d %H:%M:%S")}})
-
-        for url in urls:
-            existing = db.collections.find_one({
-                'structure': '#URLEntry',
-                'domain': self.get_domain(url)
-                })
-
-            if existing is None:
-                entry = URLEntry(domain=self.get_domain(url), url=url)
-                db.collections.insert_one(entry.export())

@@ -9,7 +9,9 @@ setup(
         'requests',
         'beautifulsoup4',
         'pymongo',
-        'more_itertools'
+        'more_itertools',
+        'tldextract',
+        'terminaltables'
     ],
     packages=[
         'webster',

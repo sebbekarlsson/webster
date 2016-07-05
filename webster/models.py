@@ -33,6 +33,7 @@ class URLEntry(DBObject):
             domain='',
             url='',
             last_scraped=time.strftime("%Y-%m-%d %H:%M:%S"),
+            tld='',
             *args,
             **kwargs
             ):
@@ -40,3 +41,4 @@ class URLEntry(DBObject):
         self.domain = domain
         self.url = url
         self.last_scraped = last_scraped
+        self.tld = tld
