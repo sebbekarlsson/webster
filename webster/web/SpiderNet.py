@@ -4,7 +4,6 @@ import threading
 
 
 class SpiderNet(threading.Thread):
-    spiders = []
     urls = []
 
     def __init__(self, urls):

@@ -100,6 +100,10 @@ if __name__ == '__main__':
         try:
             while True:
                 input = raw_input("> ")
+
+                if input is None or input == '' or input == ' ':
+                    continue
+
                 s.sendall(b'{}'.format(input))
                 data = s.recv(1024 * 1024)
                 if data:

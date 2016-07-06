@@ -56,7 +56,8 @@ class Spider(object):
                 return None
 
         try:
-            html_doc = self.sess.get(self.url, timeout=3).text
+            with self.sess as sess:
+                html_doc = sess.get(self.url, timeout=3).text
         except (InvalidSchema, ConnectionError, Timeout, TooManyRedirects):
             db.collections.remove(
                         {
