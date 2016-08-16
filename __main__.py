@@ -102,12 +102,15 @@ if __name__ == '__main__':
                 input = raw_input("> ")
 
                 if input is None or input == '' or input == ' ':
-                    continue
+                    input = 'next'
 
                 s.sendall(b'{}'.format(input))
-                data = s.recv(1024 * 1024)
-                if data:
-                    print(str(data))
+                data = s.recv((1024 * 1024))
+                print(str(data))
+                while len(data) > 1024/4:
+                    s.sendall(b'{}'.format('next'))
+                    data = s.recv((1024 * 1024))
+                    print(data)
 
             s.close()
         except KeyboardInterrupt:

@@ -140,6 +140,9 @@ class CommandParser(object):
         if command == 'scrape_date_reset':
             return scrape_date_reset(args, conn)
 
+        if command == 'next':
+            return conn.send('\n-\n')
+
         if command == 'spider':
             if len(args) > 0:
                 spider = Spider(args[0])
